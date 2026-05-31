@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>نظام تتبع السائقين</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --primary:#0077B6;--primary-light:#E8F4FD;--accent:#00B4D8;
+    --bg:#F0F4F8;--card:#fff;--border:#CBD5E0;--muted:#64748B;
+    --text:#0A1628;--success:#38A169;--danger:#E53E3E;--warning:#D97706;
+    --radius:12px;--header:#0077B6;
+  }
+  body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;direction:rtl}
+  /* ===== LOGIN ===== */
+  #loginScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:linear-gradient(135deg,#0077B6 0%,#023E8A 100%)}
+  .loginCard{background:#fff;border-radius:20px;padding:32px 28px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+  .loginLogo{text-align:center;margin-bottom:24px}
+  .loginLogo .icon{width:64px;height:64px;background:var(--primary);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px}
+  .loginLogo h1{font-size:22px;font-weight:900;color:var(--text)}
+  .loginLogo p{font-size:13px;color:var(--muted);margin-top:4px}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:14px;font-weight:700;margin-bottom:6px;color:var(--text)}
+  .field input{width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:15px;font-family:'Tajawal',sans-serif;color:var(--text);background:#fff;outline:none;transition:.2s;direction:rtl}
+  .field input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,119,182,.12)}
+  .btnPrimary{width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius);font-size:16px;font-weight:800;font-family:'Tajawal',sans-serif;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:8px}
+  .btnPrimary:active{transform:scale(.96);opacity:.9}
+  .errMsg{background:#FEE2E2;color:#991B1B;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;text-align:center;margin-top:12px;display:none}
+  /* ===== APP ===== */
+  #app{display:none;flex-direction:column;min-height:100vh}
+  /* Header */
+  .appHeader{background:var(--header);padding:12px 16px 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+  .appHeaderTop{display:flex;align-items:center;justify-content:space-between;padding-bottom:10px}
+  .appHeaderTop h2{font-size:18px;font-weight:900;color:#fff}
+  .headerBtns{display:flex;gap:8px;align-items:center}
+  .headerUserBtn{background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:.15s}
+  .headerUserBtn:active{background:rgba(255,255,255,.35)}
+  /* Tabs */
+  .tabBar{display:flex;gap:2px;overflow-x:auto;padding-bottom:0;scrollbar-width:none}
+  .tabBar::-webkit-scrollbar{display:none}
+  .tabBtn{flex:none;padding:9px 14px 10px;background:transparent;border:none;color:rgba(255,255,255,.6);font-family:'Tajawal',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border-radius:10px 10px 0 0;transition:.18s;white-space:nowrap;display:flex;align-items:center;gap:5px}
+  .tabBtn.active{background:rgba(255,255,255,.22);color:#fff}
+  .tabBtn .badge{background:#EF4444;color:#fff;font-size:10px;font-weight:800;border-radius:8px;min-width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;padding:0 3px}
+  /* Content */
+  .tabContent{display:none;padding:16px;flex:1;max-width:600px;margin:0 auto;width:100%}
+  .tabContent.active{display:block}
+  /* Cards */
+  .card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .sectionTitle{font-size:15px;font-weight:800;color:var(--text);margin-bottom:12px;text-align:right}
+  /* Type buttons grid */
+  .typeGrid{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+  .typeBtn{padding:10px 18px;border-radius:var(--radius);border:2px solid var(--border);background:#fff;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;transition:.15s}
+  .typeBtn:active{transform:scale(.94)}
+  .typeBtn.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary)}
+  /* Picker */
+  .pickerWrap{margin-bottom:14px}
+  .pickerLabel{font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;display:block}
+  .pickerBtn{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius);background:#fff;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:.15s;text-align:right}
+  .pickerBtn:active{border-color:var(--primary)}
+  .pickerBtn.placeholder{color:var(--muted)}
+  .pickerArrow{color:var(--muted);font-size:18px;flex-shrink:0;margin-right:8px}
+  .pickerValue{flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* Bottom Sheet */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end;justify-content:center}
+  .overlay.open{display:flex}
+  .sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:80vh;display:flex;flex-direction:column;animation:slideUp .25s ease}
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .sheetHandle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:10px auto 0}
+  .sheetHeader{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border)}
+  .sheetTitle{font-size:17px;font-weight:800;color:var(--text)}
+  .sheetCloseBtn{background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;padding:4px}
+  .sheetList{overflow-y:auto;flex:1;padding:8px 0}
+  .sheetOption{padding:14px 20px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9;transition:.12s;text-align:right}
+  .sheetOption:active{background:var(--primary-light)}
+  .sheetOption.selected{background:var(--primary-light);color:var(--primary);font-weight:700}
+  .sheetOption .checkIcon{color:var(--primary);font-size:16px}
+  /* Submit button */
+  .submitBtn{width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius);font-size:16px;font-weight:800;font-family:'Tajawal',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;transition:.15s;box-shadow:0 4px 14px rgba(0,119,182,.35)}
+  .submitBtn:active{transform:scale(.96)}
+  .submitBtn:disabled{opacity:.5}
+  /* Trip cards */
+  .tripCard{background:var(--card);border-radius:var(--radius);overflow:hidden;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .tripCardHeader{padding:12px 14px;display:flex;align-items:center;justify-content:space-between}
+  .tripCardMain{text-align:right;flex:1;padding-right:10px}
+  .tripVehicleRow{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+  .tripActiveDot{width:8px;height:8px;border-radius:50%;background:var(--success);flex-shrink:0}
+  .tripVehicle{font-size:20px;font-weight:900;color:var(--text)}
+  .tripDriver{font-size:14px;color:var(--muted);margin-top:2px;text-align:right;word-break:break-word}
+  .tripStation{font-size:12px;color:var(--accent);margin-top:1px;text-align:right;word-break:break-word}
+  .tripVehicleType{font-size:11px;color:var(--accent);margin-top:1px}
+  .tripActions{display:flex;flex-direction:column;gap:6px;align-items:center;flex-shrink:0}
+  .endBtn{background:var(--danger);color:#fff;border:none;border-radius:10px;padding:9px 13px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:4px;box-shadow:0 2px 8px rgba(229,62,62,.3);transition:.15s}
+  .endBtn:active{transform:scale(.93)}
+  .editBtn{background:var(--primary-light);border:1.5px solid rgba(0,119,182,.25);border-radius:8px;padding:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;font-size:15px}
+  .editBtn:active{transform:scale(.9)}
+  .tripCardFooter{display:flex;border-top:1px solid var(--border)}
+  .tripDetail{flex:1;text-align:center;padding:9px 4px;font-size:12px}
+  .tripDetailLabel{color:var(--muted);font-size:11px}
+  .tripDetailVal{font-weight:700;color:var(--text);font-size:13px;word-break:break-word}
+  .tripDetailDivider{width:1px;background:var(--border)}
+  /* Driver cards */
+  .driverCard{background:var(--card);border-radius:var(--radius);overflow:hidden;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+  .driverCardBody{padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+  .driverInfo{text-align:right;flex:1}
+  .driverName{font-size:15px;font-weight:700;color:var(--text);word-break:break-word}
+  .driverPhone{font-size:12px;color:var(--success);margin-top:2px}
+  .driverNoPhone{font-size:11px;color:var(--muted);font-style:italic;margin-top:2px}
+  .driverIdx{font-size:11px;color:var(--muted);flex-shrink:0;padding-left:10px}
+  .driverCardFooter{display:flex;border-top:1px solid var(--border)}
+  .driverActionBtn{flex:1;padding:10px;background:none;border:none;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:.15s}
+  .driverActionBtn:active{opacity:.7}
+  .driverActionBtn.account{color:var(--muted);border-left:1px solid var(--border)}
+  .driverActionBtn.account.hasAccount{color:var(--success)}
+  .driverActionBtn.edit{color:var(--primary);border-left:1px solid var(--border)}
+  .driverActionBtn.del{color:var(--danger)}
+  /* User card */
+  .userCard{background:var(--card);border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+  .userInfo{text-align:right;flex:1}
+  .userNameRow{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
+  .userName{font-size:15px;font-weight:700;color:var(--text)}
+  .userLinked{font-size:11px;color:var(--primary);margin-top:2px}
+  .roleBadge{padding:3px 8px;border-radius:20px;font-size:11px;font-weight:800}
+  .roleBadge.admin{background:#EDE9FE;color:#7C3AED}
+  .roleBadge.subadmin{background:#FEF3C7;color:#D97706}
+  .roleBadge.driver{background:#DCFCE7;color:#16A34A}
+  .roleBadge.user{background:#F1F5F9;color:var(--muted)}
+  .meBadge{background:var(--primary-light);color:var(--primary);padding:2px 7px;border-radius:10px;font-size:10px;font-weight:800}
+  .userActions{display:flex;gap:6px;flex-shrink:0;margin-right:8px}
+  .userEditBtn{background:var(--primary-light);border:1.5px solid rgba(0,119,182,.25);border-radius:8px;padding:8px;cursor:pointer;font-size:14px;transition:.15s}
+  .userEditBtn:active{transform:scale(.9)}
+  .userDeleteBtn{background:#FEF2F2;border:1.5px solid rgba(229,62,62,.2);border-radius:8px;padding:8px;cursor:pointer;font-size:14px;transition:.15s}
+  .userDeleteBtn:active{transform:scale(.9)}
+  /* Tab switcher inside page */
+  .innerTabRow{display:flex;background:#EDF2F7;border-radius:14px;padding:4px;margin-bottom:14px;position:relative}
+  .innerTabIndicator{position:absolute;top:4px;bottom:4px;background:var(--primary);border-radius:10px;transition:.25s cubic-bezier(.4,0,.2,1)}
+  .innerTab{flex:1;padding:9px;background:none;border:none;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;border-radius:10px;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:5px;transition:.2s}
+  .innerTab.active{color:#fff}
+  /* Search */
+  .searchInput{width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:15px;font-family:'Tajawal',sans-serif;color:var(--text);background:#fff;outline:none;margin-bottom:12px;direction:rtl}
+  .searchInput:focus{border-color:var(--primary)}
+  .resultCard{background:var(--card);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  .resultName{font-size:16px;font-weight:800;color:var(--text);text-align:right;margin-bottom:8px;word-break:break-word}
+  .resultGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .resultItem{background:var(--bg);border-radius:8px;padding:8px 10px}
+  .resultItemLabel{font-size:11px;color:var(--muted)}
+  .resultItemVal{font-size:13px;font-weight:700;color:var(--text);word-break:break-word}
+  .statusBadge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800}
+  .statusBadge.active{background:#DCFCE7;color:#16A34A}
+  .statusBadge.ended{background:#F1F5F9;color:var(--muted)}
+  /* Toast */
+  .toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#1E293B;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;font-family:'Tajawal',sans-serif;z-index:999;transition:.3s;opacity:0;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+  .toast.show{opacity:1}
+  .toast.success{background:#16A34A}
+  .toast.error{background:#E53E3E}
+  .toast.info{background:#0077B6}
+  /* Confirm modal */
+  .confirmOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;display:none;align-items:center;justify-content:center;padding:24px}
+  .confirmOverlay.open{display:flex}
+  .confirmModal{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:360px;text-align:center}
+  .confirmIcon{font-size:44px;margin-bottom:12px}
+  .confirmTitle{font-size:18px;font-weight:900;color:var(--text);margin-bottom:12px}
+  .confirmInfo{font-size:14px;color:var(--muted);margin-bottom:6px}
+  .confirmActions{display:flex;gap:10px;margin-top:20px}
+  .confirmCancelBtn{flex:1;padding:13px;border:1.5px solid var(--border);border-radius:12px;background:none;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:.15s}
+  .confirmCancelBtn:active{transform:scale(.96)}
+  .confirmOkBtn{flex:1;padding:13px;background:var(--danger);color:#fff;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:.15s;box-shadow:0 3px 10px rgba(229,62,62,.3)}
+  .confirmOkBtn:active{transform:scale(.96)}
+  /* Input modal */
+  .inputModal{background:#fff;border-radius:20px;padding:0;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+  .inputModalHeader{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;z-index:10}
+  .inputModalTitle{font-size:17px;font-weight:800;color:var(--text)}
+  .inputModalBody{padding:20px}
+  /* Form fields */
+  .formField{margin-bottom:14px}
+  .formLabel{display:block;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;text-align:right}
+  .formInput{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:15px;font-family:'Tajawal',sans-serif;color:var(--text);background:#fff;outline:none;direction:rtl;transition:.2s}
+  .formInput:focus{border-color:var(--primary)}
+  .formTextarea{min-height:160px;resize:vertical;line-height:1.8}
+  .roleRow{display:flex;flex-wrap:wrap;gap:8px}
+  .roleOpt{padding:9px 14px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:.15s}
+  .roleOpt:active{transform:scale(.93)}
+  .roleOpt.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary)}
+  /* Stats */
+  .statGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .statCard{background:var(--card);border-radius:var(--radius);padding:16px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  .statNum{font-size:28px;font-weight:900;color:var(--primary)}
+  .statLabel{font-size:13px;color:var(--muted);margin-top:4px;font-weight:600}
+  /* Misc */
+  .emptyState{text-align:center;padding:48px 24px;color:var(--muted)}
+  .emptyIcon{font-size:52px;margin-bottom:12px;opacity:.35}
+  .emptyTitle{font-size:17px;font-weight:800;color:var(--text);margin-bottom:6px}
+  .emptySubtitle{font-size:13px}
+  .hintBox{background:var(--primary-light);border-radius:10px;padding:12px;border:1px solid rgba(0,119,182,.2);margin-bottom:12px}
+  .hintTitle{font-size:13px;font-weight:800;color:var(--primary);text-align:right;margin-bottom:4px}
+  .hintText{font-size:12px;color:var(--muted);text-align:right;line-height:1.9;direction:rtl}
+  .accountBadge{background:#DCFCE7;color:#16A34A;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:800;display:inline-flex;align-items:center;gap:3px}
+  .addBtn{display:flex;align-items:center;gap:6px;padding:9px 14px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:.15s;box-shadow:0 3px 10px rgba(0,119,182,.3)}
+  .addBtn:active{transform:scale(.93)}
+  .listHeaderRow{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .listHeaderTitle{font-size:15px;font-weight:800;color:var(--text)}
+  .divider{width:1px;background:var(--border)}
+  .acExistBox{background:#DCFCE7;border-radius:8px;padding:10px;display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-bottom:12px;font-size:13px;font-weight:700;color:var(--success)}
+  .deleteAccountBtn{width:100%;padding:12px;border:1.5px solid rgba(229,62,62,.4);border-radius:var(--radius);background:none;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:var(--danger);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;transition:.15s}
+  .deleteAccountBtn:active{transform:scale(.96)}
+  .userMenuOverlay{position:fixed;inset:0;z-index:400;display:none}
+  .userMenuOverlay.open{display:block}
+  .userMenuCard{position:absolute;left:12px;top:60px;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;min-width:200px;animation:menuPop .15s ease}
+  @keyframes menuPop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+  .userMenuHeader{background:var(--primary-light);padding:14px 18px;text-align:right}
+  .userMenuName{font-size:17px;font-weight:800;color:var(--text)}
+  .userMenuRole{font-size:12px;color:var(--muted);margin-bottom:2px}
+  .userMenuLogout{padding:14px 18px;display:flex;align-items:center;justify-content:flex-end;gap:10px;border-top:1px solid var(--border);cursor:pointer;font-size:15px;font-weight:700;color:var(--danger);background:none;border-left:none;border-right:none;border-bottom:none;width:100%;font-family:'Tajawal',sans-serif}
+  .userMenuLogout:active{background:#FEF2F2}
+  .conflictCard{background:#FEF3C7;border-radius:12px;padding:14px;margin-bottom:10px;border:1.5px solid #F59E0B}
+  .conflictTitle{font-size:14px;font-weight:800;color:#92400E;text-align:right;margin-bottom:8px}
+  .conflictInfo{font-size:13px;color:#78350F;text-align:right;margin-bottom:6px;word-break:break-word}
+  .resolveBtn{background:#D97706;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:.15s}
+  .resolveBtn:active{transform:scale(.93)}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="loginScreen">
+  <div class="loginCard">
+    <div class="loginLogo">
+      <div class="icon">🚛</div>
+      <h1>نظام تتبع السائقين</h1>
+      <p>تسجيل الدخول للمتابعة</p>
+    </div>
+    <div class="field">
+      <label>اسم المستخدم</label>
+      <input id="loginUser" type="text" placeholder="أدخل اسم المستخدم" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>كلمة المرور</label>
+      <input id="loginPass" type="password" placeholder="أدخل كلمة المرور" autocomplete="current-password">
+    </div>
+    <button class="btnPrimary" onclick="doLogin()">🔑 تسجيل الدخول</button>
+    <div class="errMsg" id="loginErr">اسم المستخدم أو كلمة المرور غير صحيحة</div>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <div class="appHeader">
+    <div class="appHeaderTop">
+      <div class="headerBtns">
+        <button class="headerUserBtn" onclick="toggleUserMenu()" id="userMenuBtn">👤</button>
+      </div>
+      <h2 id="headerTitle">تسجيل ركوب</h2>
+    </div>
+    <div class="tabBar" id="tabBar"></div>
+  </div>
+
+  <!-- Tabs -->
+  <div id="tabRide" class="tabContent active"></div>
+  <div id="tabEndTrip" class="tabContent"></div>
+  <div id="tabSearch" class="tabContent"></div>
+  <div id="tabStats" class="tabContent"></div>
+  <div id="tabDrivers" class="tabContent"></div>
+  <div id="tabConflicts" class="tabContent"></div>
+</div>
+
+<!-- Bottom Sheet Picker -->
+<div class="overlay" id="pickerOverlay" onclick="closePicker(event)">
+  <div class="sheet">
+    <div class="sheetHandle"></div>
+    <div class="sheetHeader">
+      <button class="sheetCloseBtn" onclick="closePicker()">✕</button>
+      <span class="sheetTitle" id="pickerTitle">اختر</span>
+    </div>
+    <div class="sheetList" id="pickerList"></div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="confirmOverlay" id="confirmOverlay">
+  <div class="confirmModal">
+    <div class="confirmIcon">⚠️</div>
+    <div class="confirmTitle" id="confirmTitle"></div>
+    <div class="confirmInfo" id="confirmInfo1"></div>
+    <div class="confirmInfo" id="confirmInfo2"></div>
+    <div class="confirmActions">
+      <button class="confirmCancelBtn" onclick="closeConfirm()">إلغاء</button>
+      <button class="confirmOkBtn" id="confirmOkBtn">تأكيد</button>
+    </div>
+  </div>
+</div>
+
+<!-- Input Modal -->
+<div class="overlay" id="inputOverlay" onclick="closeInputModal(event)">
+  <div class="inputModal" onclick="event.stopPropagation()">
+    <div class="inputModalHeader">
+      <button class="sheetCloseBtn" onclick="closeInputModal()">✕</button>
+      <span class="inputModalTitle" id="inputModalTitle">نموذج</span>
+    </div>
+    <div class="inputModalBody" id="inputModalBody"></div>
+  </div>
+</div>
+
+<!-- User Menu -->
+<div class="userMenuOverlay" id="userMenuOverlay" onclick="closeUserMenu()">
+  <div class="userMenuCard" onclick="event.stopPropagation()">
+    <div class="userMenuHeader">
+      <div class="userMenuRole" id="umRole"></div>
+      <div class="userMenuName" id="umName"></div>
+    </div>
+    <button class="userMenuLogout" onclick="doLogout()">🚪 تسجيل الخروج</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ DATA ============
+const VEHICLE_TYPES=[{l:"خلاطة",v:"خلاطة"},{l:"مضخة",v:"مضخة"},{l:"بيك أب",v:"بيك أب"},{l:"ميني باص",v:"ميني باص"}];
+const SHIFTS=[{l:"صباحية",v:"صباحية"},{l:"مسائية",v:"مسائية"},{l:"الذهاب إلى محطة",v:"الذهاب إلى محطة"}];
+const STATIONS=[{l:"التجمع",v:"التجمع"},{l:"الهرم",v:"الهرم"},{l:"العاصمة",v:"العاصمة"},{l:"ERG",v:"ERG"},{l:"مستقبل مصر",v:"مستقبل مصر"},{l:"الرحاب",v:"الرحاب"},{l:"بورسعيد",v:"بورسعيد"},{l:"دمياط",v:"دمياط"},{l:"العلمين",v:"العلمين"},{l:"South.Med",v:"South.Med"},{l:"Cali.Cost",v:"Cali.Cost"},{l:"زايد",v:"زايد"},{l:"أخرى",v:"أخرى"}];
+
+function getVehicleOptions(t){
+  if(t==="خلاطة") return Array.from({length:84},(_,i)=>({l:`T${i+1}`,v:`T${i+1}`}));
+  if(t==="مضخة") return Array.from({length:20},(_,i)=>({l:`P${String(i+1).padStart(2,'0')}`,v:`P${String(i+1).padStart(2,'0')}`}));
+  if(t==="بيك أب") return Array.from({length:20},(_,i)=>({l:`PK-${String(i+1).padStart(2,'0')}`,v:`PK-${String(i+1).padStart(2,'0')}`}));
+  if(t==="ميني باص") return Array.from({length:20},(_,i)=>({l:`B${String(i+1).padStart(2,'0')}`,v:`B${String(i+1).padStart(2,'0')}`}));
+  return [];
+}
+
+// ============ STORAGE ============
+function ls(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}}
+function ss(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function genId(){return Date.now().toString(36)+Math.random().toString(36).substr(2,8)}
+
+function getUsers(){return ls('dt_users')||[{id:'admin-seed',username:'admin',password:'admin',role:'admin',createdAt:new Date(0).toISOString()}]}
+function saveUsers(u){ss('dt_users',u)}
+function getDrivers(){return ls('dt_drivers')||[]}
+function saveDrivers(d){ss('dt_drivers',d)}
+function getTrips(){return ls('dt_trips')||[]}
+function saveTrips(t){ss('dt_trips',t)}
+
+// ============ STATE ============
+let currentUser=null;
+let activeTab='ride';
+let pickerCallback=null;
+let confirmCallback=null;
+
+// Ride form
+let rideVehicleType='',rideVehicle='',rideShift='',rideStation='',rideFromStation='',rideToStation='',rideDriver='';
+
+// ============ AUTH ============
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  const users=getUsers();
+  const found=users.find(x=>x.username.toLowerCase()===u.toLowerCase()&&x.password===p);
+  if(!found){document.getElementById('loginErr').style.display='block';return;}
+  document.getElementById('loginErr').style.display='none';
+  currentUser=found;
+  ss('dt_session',{userId:found.id});
+  showApp();
+}
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginPass').focus();});
+
+function doLogout(){
+  currentUser=null;
+  localStorage.removeItem('dt_session');
+  closeUserMenu();
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+}
+
+function tryRestoreSession(){
+  const s=ls('dt_session');
+  if(!s)return;
+  const u=getUsers().find(x=>x.id===s.userId);
+  if(u){currentUser=u;showApp();}
+}
+
+// ============ APP INIT ============
+function showApp(){
+  document.getElementById('loginScreen').style.display='none';
+  const app=document.getElementById('app');
+  app.style.display='flex';
+  app.style.flexDirection='column';
+  buildTabBar();
+  document.getElementById('umName').textContent=currentUser.username;
+  document.getElementById('umRole').textContent=roleLabel(currentUser.role);
+  switchTab('ride');
+}
+
+function isAdmin(){return currentUser?.role==='admin'}
+function isSubAdmin(){return currentUser?.role==='subadmin'}
+function canManage(){return isAdmin()||isSubAdmin()}
+
+function roleLabel(r){if(r==='admin')return 'أدمن رئيسي';if(r==='subadmin')return 'أدمن فرعي';if(r==='driver')return 'سائق';return 'مستخدم';}
+function roleBadgeClass(r){return r==='admin'?'admin':r==='subadmin'?'subadmin':r==='driver'?'driver':'user';}
+
+function buildTabBar(){
+  const tabs=[
+    {id:'ride',label:'ركوب',icon:'🚌'},
+    {id:'endtrip',label:'نزول',icon:'🏁'},
+    {id:'search',label:'بحث',icon:'🔍'},
+    {id:'stats',label:'إحصائيات',icon:'📊'},
+    {id:'drivers',label:'إدارة',icon:'👥'},
+    ...(canManage()?[{id:'conflicts',label:'تعارضات',icon:'⚠️'}]:[]),
+  ];
+  const bar=document.getElementById('tabBar');
+  bar.innerHTML=tabs.map(t=>`<button class="tabBtn" id="tab_${t.id}" onclick="switchTab('${t.id}')">${t.icon} ${t.label}</button>`).join('');
+}
+
+const tabTitles={ride:'تسجيل ركوب',endtrip:'تسجيل نزول',search:'البحث',stats:'الإحصائيات',drivers:'الإدارة',conflicts:'التعارضات'};
+const tabIds={ride:'tabRide',endtrip:'tabEndTrip',search:'tabSearch',stats:'tabStats',drivers:'tabDrivers',conflicts:'tabConflicts'};
+
+function switchTab(id){
+  activeTab=id;
+  document.querySelectorAll('.tabBtn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tabContent').forEach(c=>c.classList.remove('active'));
+  const btn=document.getElementById('tab_'+id);
+  if(btn)btn.classList.add('active');
+  const content=document.getElementById(tabIds[id]);
+  if(content)content.classList.add('active');
+  document.getElementById('headerTitle').textContent=tabTitles[id]||'';
+  renderTab(id);
+}
+
+function renderTab(id){
+  if(id==='ride')renderRide();
+  else if(id==='endtrip')renderEndTrip();
+  else if(id==='search')renderSearch();
+  else if(id==='stats')renderStats();
+  else if(id==='drivers')renderDrivers();
+  else if(id==='conflicts')renderConflicts();
+}
+
+// ============ PICKER ============
+function openPicker(title,options,currentVal,cb){
+  pickerCallback=cb;
+  document.getElementById('pickerTitle').textContent=title;
+  const list=document.getElementById('pickerList');
+  list.innerHTML=options.map(o=>`<div class="sheetOption${o.v===currentVal?' selected':''}" onclick="selectPickerOpt('${o.v.replace(/'/g,"\\'")}')">
+    <span>${o.v===currentVal?'<span class="checkIcon">✓</span>':''}</span>
+    <span>${o.l}</span>
+  </div>`).join('');
+  document.getElementById('pickerOverlay').classList.add('open');
+}
+function selectPickerOpt(v){if(pickerCallback)pickerCallback(v);closePicker();}
+function closePicker(e){if(e&&e.target!==document.getElementById('pickerOverlay'))return;document.getElementById('pickerOverlay').classList.remove('open');pickerCallback=null;}
+
+function pickerBtn(label,val,opts,id,cb){
+  const selected=opts.find(o=>o.v===val);
+  return `<div class="pickerWrap">
+    <span class="pickerLabel">${label}</span>
+    <button class="pickerBtn${!selected?' placeholder':''}" onclick="openPicker('${label}',window.__opts_${id},window.__val_${id},function(v){${cb}})">
+      <span class="pickerArrow">⌄</span>
+      <span class="pickerValue">${selected?selected.l:'اختر...'}</span>
+    </button>
+  </div>`;
+}
+
+// ============ RIDE TAB ============
+function renderRide(){
+  const el=document.getElementById('tabRide');
+  const trips=getTrips().filter(t=>!t.endDatetime);
+  const myTrips=isAdmin()?trips:trips.filter(t=>t.userId===currentUser.id||(currentUser.linkedDriverName&&t.driverName===currentUser.linkedDriverName));
+  const drivers=getDrivers();
+  const driverOpts=drivers.map(d=>({l:d.name,v:d.name}));
+  const isDriver=currentUser.role==='driver';
+  const linked=currentUser.linkedDriverName||'';
+
+  window.__opts_vehicle=getVehicleOptions(rideVehicleType);
+  window.__val_vehicle=rideVehicle;
+  window.__opts_shift=SHIFTS;window.__val_shift=rideShift;
+  window.__opts_station=STATIONS;window.__val_station=rideStation;
+  window.__opts_fromStation=STATIONS;window.__val_fromStation=rideFromStation;
+  window.__opts_toStation=STATIONS;window.__val_toStation=rideToStation;
+  window.__opts_driver=driverOpts;window.__val_driver=rideDriver;
+
+  const isGhiab=rideShift==='الذهاب إلى محطة';
+  let html=`<div class="card">
+    <div class="sectionTitle">نوع المركبة</div>
+    <div class="typeGrid">${VEHICLE_TYPES.map(vt=>`<button class="typeBtn${rideVehicleType===vt.v?' active':''}" onclick="setRideType('${vt.v}')">${vt.l}</button>`).join('')}</div>
+  </div>`;
+
+  if(rideVehicleType){
+    html+=`<div class="card">
+      ${pickerBtn('رقم المركبة',rideVehicle,window.__opts_vehicle,'vehicle',"rideVehicle=v;renderRide()")}
+      ${pickerBtn('الوردية',rideShift,SHIFTS,'shift',"rideShift=v;renderRide()")}
+      ${isGhiab?`
+        <div class="hintBox"><div class="hintTitle">🧭 اختر محطة المغادرة والوصول</div></div>
+        ${pickerBtn('من محطة',rideFromStation,STATIONS,'fromStation',"rideFromStation=v;renderRide()")}
+        ${pickerBtn('إلى محطة',rideToStation,STATIONS,'toStation',"rideToStation=v;renderRide()")}
+      `:pickerBtn('المحطة',rideStation,STATIONS,'station',"rideStation=v;renderRide()")}
+      ${isDriver
+        ?`<div style="background:var(--primary-light);border:1.5px solid rgba(0,119,182,.3);border-radius:10px;padding:13px 14px;display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:14px"><span style="font-size:15px;font-weight:700;color:var(--primary)">👤 السائق: ${linked}</span></div>`
+        :pickerBtn('السائق',rideDriver,driverOpts,'driver',"rideDriver=v;renderRide()")}
+      <button class="submitBtn" onclick="submitRide()">🚌 تسجيل ركوب</button>
+    </div>`;
+  }
+
+  if(myTrips.length>0){
+    html+=`<div class="card"><div class="sectionTitle">${isAdmin()?`الرحلات النشطة (${trips.length})`:`رحلاتي النشطة (${myTrips.length})`}</div>`;
+    myTrips.forEach(t=>{
+      const canEditT=isAdmin()||(t.userId===currentUser.id&&Date.now()-new Date(t.startDatetime).getTime()<600000);
+      html+=`<div style="display:flex;align-items:center;justify-content:flex-end;padding:10px 0;border-bottom:1px solid #f1f5f9;gap:8px">
+        <div style="display:flex;gap:6px;align-items:center">
+          ${canEditT?`<button class="editBtn" onclick="openEditTrip('${t.id}')">✏️</button>`:''}
+          <button style="background:#FEF3C7;border:1px solid rgba(217,119,6,.4);border-radius:8px;padding:7px 10px;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;color:#D97706;cursor:pointer" onclick="openHandoff('${t.id}')">🔄 تسليم</button>
+        </div>
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--success);flex-shrink:0"></div>
+        <div style="text-align:right;flex:1">
+          <div style="font-size:15px;font-weight:800">${t.vehicle}</div>
+          <div style="font-size:13px;color:var(--muted)">${t.driverName}</div>
+          <div style="font-size:12px;color:var(--accent)">${t.station}</div>
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+  }
+  el.innerHTML=html;
+}
+
+function setRideType(v){rideVehicleType=v;rideVehicle='';renderRide();}
+
+function submitRide(){
+  const isDriver=currentUser.role==='driver';
+  const linked=currentUser.linkedDriverName||'';
+  const driver=isDriver?linked:rideDriver;
+  if(!rideVehicleType){showToast('اختر نوع المركبة','error');return;}
+  if(!rideVehicle){showToast('اختر رقم المركبة','error');return;}
+  if(!rideShift){showToast('اختر الوردية','error');return;}
+  const isGhiab=rideShift==='الذهاب إلى محطة';
+  if(isGhiab&&(!rideFromStation||!rideToStation)){showToast('اختر محطتي المغادرة والوصول','error');return;}
+  if(!isGhiab&&!rideStation){showToast('اختر المحطة','error');return;}
+  if(!driver){showToast('اختر السائق','error');return;}
+  const trips=getTrips();
+  if(trips.find(t=>!t.endDatetime&&t.vehicle===rideVehicle)){showToast(`المركبة ${rideVehicle} لها رحلة مفتوحة`,'error');return;}
+  if(trips.find(t=>!t.endDatetime&&t.driverName===driver)){showToast(`السائق ${driver} لديه رحلة مفتوحة`,'error');return;}
+  const station=isGhiab?`${rideFromStation} ← ${rideToStation}`:rideStation;
+  const t={id:genId(),userId:currentUser.id,driverName:driver,vehicle:rideVehicle,vehicleType:rideVehicleType,shift:rideShift,station,startDatetime:new Date().toISOString(),synced:false};
+  saveTrips([...trips,t]);
+  showToast(`تم تسجيل ركوب ${driver} على ${rideVehicle}`,'success');
+  rideVehicle='';rideShift='';rideStation='';rideFromStation='';rideToStation='';rideVehicleType='';
+  if(!isDriver)rideDriver='';
+  renderRide();
+}
+
+function openHandoff(tripId){
+  const trips=getTrips();const t=trips.find(x=>x.id===tripId);if(!t)return;
+  const drivers=getDrivers();
+  const opts=drivers.filter(d=>d.name!==t.driverName).map(d=>({l:d.name,v:d.name}));
+  openInputModal('تسليم وتسلم خارج الموقع',`
+    <div style="background:var(--primary-light);border-radius:10px;padding:12px;text-align:right;margin-bottom:14px">
+      <div style="font-size:18px;font-weight:900;color:var(--primary)">${t.vehicle}</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">السائق الحالي: <strong>${t.driverName}</strong></div>
+    </div>
+    <div class="formField">
+      <label class="formLabel">السائق الجديد</label>
+      <select id="handoffDriverSel" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:15px;font-family:'Tajawal',sans-serif;direction:rtl;background:#fff;outline:none">
+        <option value="">اختر السائق الجديد</option>
+        ${opts.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}
+      </select>
+    </div>
+    <button class="submitBtn" onclick="confirmHandoff('${tripId}')">✅ تأكيد التسليم</button>
+  `);
+}
+
+function confirmHandoff(tripId){
+  const newDriver=document.getElementById('handoffDriverSel')?.value;
+  if(!newDriver){showToast('اختر السائق الجديد','error');return;}
+  const trips=getTrips();const t=trips.find(x=>x.id===tripId);
+  if(trips.find(x=>!x.endDatetime&&x.driverName===newDriver&&x.id!==tripId)){showToast(`${newDriver} لديه رحلة مفتوحة`,'error');return;}
+  saveTrips(trips.map(x=>x.id===tripId?{...x,driverName:newDriver,lastModified:new Date().toISOString()}:x));
+  showToast(`تم التسليم إلى ${newDriver}`,'success');
+  closeInputModal();renderRide();
+}
+
+// ============ END TRIP TAB ============
+function renderEndTrip(){
+  const el=document.getElementById('tabEndTrip');
+  const trips=getTrips().filter(t=>!t.endDatetime);
+  const myTrips=isAdmin()?trips:trips.filter(t=>t.userId===currentUser.id||(currentUser.linkedDriverName&&t.driverName===currentUser.linkedDriverName));
+  if(myTrips.length===0){el.innerHTML=`<div class="emptyState"><div class="emptyIcon">📭</div><div class="emptyTitle">${isAdmin()?'لا توجد رحلات نشطة':'لا توجد رحلات نشطة لك'}</div><div class="emptySubtitle">سجّل ركوباً من تبويب ركوب</div></div>`;return;}
+  let html='';
+  myTrips.forEach(t=>{
+    const canEditT=isAdmin()||(t.userId===currentUser.id&&Date.now()-new Date(t.startDatetime).getTime()<600000);
+    const time=new Date(t.startDatetime).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});
+    html+=`<div class="tripCard">
+      <div class="tripCardHeader">
+        <div class="tripActions">
+          ${canEditT?`<button class="editBtn" onclick="openEditTrip('${t.id}')">✏️</button>`:''}
+          <button class="endBtn" onclick="confirmEndTrip('${t.id}')">🏁 نزول</button>
+        </div>
+        <div class="tripCardMain">
+          <div class="tripVehicleRow"><div class="tripActiveDot"></div><div class="tripVehicle">${t.vehicle}</div></div>
+          <div class="tripDriver">${t.driverName}</div>
+          <div class="tripVehicleType">${t.vehicleType}</div>
+        </div>
+      </div>
+      <div class="tripCardFooter">
+        <div class="tripDetail"><div class="tripDetailLabel">الوردية</div><div class="tripDetailVal">${t.shift}</div></div>
+        <div class="tripDetailDivider"></div>
+        <div class="tripDetail"><div class="tripDetailLabel">المحطة</div><div class="tripDetailVal">${t.station}</div></div>
+        <div class="tripDetailDivider"></div>
+        <div class="tripDetail"><div class="tripDetailLabel">وقت الركوب</div><div class="tripDetailVal">${time}</div></div>
+      </div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+
+function confirmEndTrip(tripId){
+  const t=getTrips().find(x=>x.id===tripId);if(!t)return;
+  openConfirm('تأكيد تسجيل النزول',`السائق: ${t.driverName}`,`المركبة: ${t.vehicle}`,()=>{
+    saveTrips(getTrips().map(x=>x.id===tripId?{...x,endDatetime:new Date().toISOString()}:x));
+    showToast(`تم تسجيل نزول ${t.driverName}`,'success');
+    renderEndTrip();
+  });
+}
+
+// ============ EDIT TRIP ============
+function openEditTrip(tripId){
+  const t=getTrips().find(x=>x.id===tripId);if(!t)return;
+  const drivers=getDrivers();
+  const driverOpts=drivers.map(d=>({l:d.name,v:d.name}));
+  openInputModal('تعديل بيانات الرحلة',`
+    <div class="formField"><label class="formLabel">السائق</label>
+      <select id="etDriver" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:15px;font-family:'Tajawal',sans-serif;direction:rtl;background:#fff;outline:none">
+        ${driverOpts.map(o=>`<option value="${o.v}"${o.v===t.driverName?' selected':''}>${o.l}</option>`).join('')}
+      </select></div>
+    <div class="formField"><label class="formLabel">الوردية</label>
+      <select id="etShift" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:15px;font-family:'Tajawal',sans-serif;direction:rtl;background:#fff;outline:none">
+        ${SHIFTS.map(s=>`<option value="${s.v}"${s.v===t.shift?' selected':''}>${s.l}</option>`).join('')}
+      </select></div>
+    <div class="formField"><label class="formLabel">المحطة</label>
+      <select id="etStation" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:15px;font-family:'Tajawal',sans-serif;direction:rtl;background:#fff;outline:none">
+        ${STATIONS.map(s=>`<option value="${s.v}"${s.v===t.station?' selected':''}>${s.l}</option>`).join('')}
+      </select></div>
+    <button class="submitBtn" onclick="saveEditTrip('${tripId}')">💾 حفظ التعديلات</button>
+  `);
+}
+function saveEditTrip(tripId){
+  const driver=document.getElementById('etDriver')?.value;
+  const shift=document.getElementById('etShift')?.value;
+  const station=document.getElementById('etStation')?.value;
+  saveTrips(getTrips().map(t=>t.id===tripId?{...t,driverName:driver,shift,station,lastModified:new Date().toISOString()}:t));
+  showToast('تم تعديل الرحلة','success');closeInputModal();
+  if(activeTab==='ride')renderRide();else if(activeTab==='endtrip')renderEndTrip();
+}
+
+// ============ SEARCH TAB ============
+function renderSearch(){
+  const el=document.getElementById('tabSearch');
+  el.innerHTML=`<input class="searchInput" id="searchInput" placeholder="ابحث عن سائق أو مركبة أو محطة..." oninput="doSearch()" autofocus>
+  <div id="searchResults"></div>`;
+}
+function doSearch(){
+  const q=document.getElementById('searchInput')?.value?.trim()?.toLowerCase();
+  const res=document.getElementById('searchResults');if(!res)return;
+  if(!q){res.innerHTML='';return;}
+  const trips=getTrips().filter(t=>
+    t.driverName.toLowerCase().includes(q)||t.vehicle.toLowerCase().includes(q)||t.station.toLowerCase().includes(q)
+  );
+  if(trips.length===0){res.innerHTML=`<div class="emptyState"><div class="emptyIcon">🔍</div><div class="emptyTitle">لا توجد نتائج</div></div>`;return;}
+  res.innerHTML=trips.map(t=>`<div class="resultCard">
+    <div class="resultName">${t.driverName}</div>
+    <div class="resultGrid">
+      <div class="resultItem"><div class="resultItemLabel">المركبة</div><div class="resultItemVal">${t.vehicle}</div></div>
+      <div class="resultItem"><div class="resultItemLabel">النوع</div><div class="resultItemVal">${t.vehicleType}</div></div>
+      <div class="resultItem"><div class="resultItemLabel">المحطة</div><div class="resultItemVal">${t.station}</div></div>
+      <div class="resultItem"><div class="resultItemLabel">الوردية</div><div class="resultItemVal">${t.shift}</div></div>
+      <div class="resultItem"><div class="resultItemLabel">الحالة</div><div class="resultItemVal"><span class="statusBadge ${t.endDatetime?'ended':'active'}">${t.endDatetime?'منتهية':'نشطة'}</span></div></div>
+      <div class="resultItem"><div class="resultItemLabel">وقت الركوب</div><div class="resultItemVal">${new Date(t.startDatetime).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}</div></div>
+    </div>
+  </div>`).join('');
+}
+
+// ============ STATS TAB ============
+function renderStats(){
+  const el=document.getElementById('tabStats');
+  const trips=getTrips();
+  const active=trips.filter(t=>!t.endDatetime);
+  const today=new Date().toDateString();
+  const todayTrips=trips.filter(t=>new Date(t.startDatetime).toDateString()===today);
+  const drivers=getDrivers();
+  el.innerHTML=`
+    <div class="statGrid">
+      <div class="statCard"><div class="statNum">${active.length}</div><div class="statLabel">رحلات نشطة الآن</div></div>
+      <div class="statCard"><div class="statNum">${todayTrips.length}</div><div class="statLabel">رحلات اليوم</div></div>
+      <div class="statCard"><div class="statNum">${trips.length}</div><div class="statLabel">إجمالي الرحلات</div></div>
+      <div class="statCard"><div class="statNum">${drivers.length}</div><div class="statLabel">إجمالي السائقين</div></div>
+    </div>
+    ${active.length>0?`<div class="card"><div class="sectionTitle">الرحلات النشطة الآن</div>${active.map(t=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f1f5f9">
+        <span class="statusBadge active">نشطة</span>
+        <div style="text-align:right"><div style="font-weight:800">${t.vehicle} — ${t.driverName}</div><div style="font-size:12px;color:var(--muted)">${t.station}</div></div>
+      </div>`).join('')}</div>`:''}
+  `;
+}
+
+// ============ DRIVERS TAB ============
+let driversInnerTab='drivers';
+function renderDrivers(){
+  const el=document.getElementById('tabDrivers');
+  if(!canManage()){el.innerHTML=`<div class="emptyState"><div class="emptyIcon">🔒</div><div class="emptyTitle">غير مصرح</div><div class="emptySubtitle">هذا القسم للأدمن فقط</div></div>`;return;}
+  const drivers=getDrivers();
+  const users=getUsers();
+
+  // Tab switcher
+  let html=`<div class="innerTabRow" style="position:relative">
+    <div class="innerTabIndicator" style="width:50%;${driversInnerTab==='drivers'?'right:0':'right:50%'}"></div>
+    <button class="innerTab${driversInnerTab==='users'?' active':''}" onclick="setDriversTab('users')">👥 المستخدمون</button>
+    <button class="innerTab${driversInnerTab==='drivers'?' active':''}" onclick="setDriversTab('drivers')">🚛 السائقون</button>
+  </div>`;
+
+  if(driversInnerTab==='drivers'){
+    html+=`<div class="listHeaderRow">
+      <button class="addBtn" onclick="openAddDrivers()">➕ إضافة سائقين</button>
+      <span class="listHeaderTitle">السائقون (${drivers.length})</span>
+    </div>`;
+    if(drivers.length===0)html+=`<div class="emptyState"><div class="emptyIcon">👤</div><div class="emptyTitle">لا يوجد سائقون</div></div>`;
+    else drivers.forEach((d,i)=>{
+      const linked=users.find(u=>u.linkedDriverName===d.name);
+      html+=`<div class="driverCard">
+        <div class="driverCardBody">
+          <div class="driverIdx">#${i+1}</div>
+          <div class="driverInfo">
+            <div class="driverName">${d.name}${linked?` <span class="accountBadge">✓ حساب</span>`:''}</div>
+            ${d.phone?`<div class="driverPhone">📞 ${d.phone}</div>`:`<div class="driverNoPhone">لا يوجد رقم</div>`}
+          </div>
+        </div>
+        <div class="driverCardFooter">
+          <button class="driverActionBtn account${linked?' hasAccount':''}" onclick="openAccountModal('${d.id}')">${linked?'✏️ تعديل حساب':'👤 إنشاء حساب'}</button>
+          <div class="divider"></div>
+          <button class="driverActionBtn edit" onclick="openEditDriver('${d.id}')">✏️ تعديل</button>
+          <div class="divider"></div>
+          <button class="driverActionBtn del" onclick="confirmDeleteDriver('${d.id}','${d.name.replace(/'/g,"\\'")}')">🗑️ حذف</button>
+        </div>
+      </div>`;
+    });
+  } else {
+    // Users tab
+    html+=`<div class="listHeaderRow">
+      <button class="addBtn" onclick="openAddUser()">➕ إضافة مستخدم</button>
+      <span class="listHeaderTitle">المستخدمون (${users.length})</span>
+    </div>`;
+    users.forEach(u=>{
+      const isMe=u.id===currentUser.id;
+      const editable=canEditUser(u);
+      html+=`<div class="userCard">
+        ${editable?`<div class="userActions">
+          <button class="userEditBtn" onclick="openEditUser('${u.id}')">✏️</button>
+          ${u.username!=='admin'?`<button class="userDeleteBtn" onclick="confirmDeleteUser('${u.id}','${u.username.replace(/'/g,"\\'")}')">🗑️</button>`:''}
+        </div>`:''}
+        <div class="userInfo">
+          <div class="userNameRow">
+            ${isMe?`<span class="meBadge">أنت</span>`:''}
+            <span class="roleBadge ${roleBadgeClass(u.role)}">${roleLabel(u.role)}</span>
+            <span class="userName">${u.username}</span>
+          </div>
+          ${u.linkedDriverName?`<div class="userLinked">مرتبط بـ: ${u.linkedDriverName}</div>`:''}
+        </div>
+      </div>`;
+    });
+  }
+  el.innerHTML=html;
+}
+
+function setDriversTab(t){driversInnerTab=t;renderDrivers();}
+
+function canEditUser(u){
+  if(!currentUser)return false;
+  if(isAdmin())return true;
+  if(isSubAdmin()){if(u.id===currentUser.id)return true;return u.role==='user'||u.role==='driver';}
+  return false;
+}
+
+// Add drivers bulk
+function openAddDrivers(){
+  openInputModal('إضافة سائقين',`
+    <div class="hintBox">
+      <div class="hintTitle">طريقة الكتابة:</div>
+      <div class="hintText">محمد أحمد\n01012345678\nعلي حسن\n01098765432</div>
+    </div>
+    <div class="formField">
+      <label class="formLabel">أسماء السائقين</label>
+      <textarea class="formInput formTextarea" id="bulkDrivers" placeholder="اكتب اسم السائق ثم رقم تليفونه تحته..."></textarea>
+    </div>
+    <button class="submitBtn" onclick="submitBulkDrivers()">➕ إضافة الكل</button>
+  `);
+}
+function submitBulkDrivers(){
+  const text=document.getElementById('bulkDrivers')?.value||'';
+  const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);
+  const isPhone=l=>/^[\d\s+\-()]{6,}$/.test(l);
+  const entries=[];let i=0;
+  while(i<lines.length){
+    if(isPhone(lines[i])){i++;continue;}
+    const name=lines[i];let phone;
+    if(i+1<lines.length&&isPhone(lines[i+1])){phone=lines[i+1];i+=2;}else i++;
+    entries.push({name,phone});
+  }
+  if(!entries.length){showToast('لا يوجد أسماء للإضافة','error');return;}
+  const drivers=getDrivers();
+  const existing=new Set(drivers.map(d=>d.name.toLowerCase()));
+  let added=0,skipped=0;
+  const toAdd=[];
+  entries.forEach(e=>{
+    if(!e.name.trim()||existing.has(e.name.trim().toLowerCase())){skipped++;return;}
+    toAdd.push({id:genId(),name:e.name.trim(),phone:e.phone?.trim()||undefined});
+    existing.add(e.name.trim().toLowerCase());
+    added++;
+  });
+  saveDrivers([...drivers,...toAdd]);
+  showToast(`تم إضافة ${added} سائق${skipped>0?` (${skipped} مكرر)`:''}`,added>0?'success':'error');
+  if(added>0){closeInputModal();renderDrivers();}
+}
+
+// Edit driver
+function openEditDriver(id){
+  const d=getDrivers().find(x=>x.id===id);if(!d)return;
+  openInputModal('تعديل بيانات السائق',`
+    <div class="formField"><label class="formLabel">اسم السائق</label><input class="formInput" id="edName" value="${d.name}" type="text"></div>
+    <div class="formField"><label class="formLabel">رقم التليفون</label><input class="formInput" id="edPhone" value="${d.phone||''}" type="tel"></div>
+    <button class="submitBtn" onclick="saveEditDriver('${id}')">💾 حفظ</button>
+  `);
+}
+function saveEditDriver(id){
+  const name=document.getElementById('edName')?.value?.trim();
+  const phone=document.getElementById('edPhone')?.value?.trim();
+  if(!name){showToast('الاسم مطلوب','error');return;}
+  saveDrivers(getDrivers().map(d=>d.id===id?{...d,name,phone:phone||undefined}:d));
+  showToast('تم تعديل بيانات السائق','success');closeInputModal();renderDrivers();
+}
+
+function confirmDeleteDriver(id,name){
+  openConfirm('حذف السائق',`هل تريد حذف "${name}"؟`,'لا يمكن التراجع',()=>{
+    saveDrivers(getDrivers().filter(d=>d.id!==id));
+    showToast(`تم حذف ${name}`,'info');renderDrivers();
+  });
+}
+
+// Account modal
+function openAccountModal(driverId){
+  const d=getDrivers().find(x=>x.id===driverId);if(!d)return;
+  const users=getUsers();
+  const linked=users.find(u=>u.linkedDriverName===d.name);
+  openInputModal(linked?'تعديل حساب السائق':'إنشاء حساب للسائق',`
+    <div style="background:var(--primary-light);border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-bottom:14px">
+      <span style="font-size:16px;font-weight:800;color:var(--text)">${d.name}</span>
+    </div>
+    ${linked?`<div class="acExistBox">✓ حساب موجود: ${linked.username}</div>`:''}
+    <div class="formField"><label class="formLabel">اسم المستخدم</label><input class="formInput" id="acUser" value="${linked?linked.username:d.name}" type="text" autocomplete="off"></div>
+    <div class="formField"><label class="formLabel">كلمة المرور</label><input class="formInput" id="acPass" placeholder="كلمة مرور" type="password" autocomplete="new-password"></div>
+    <div class="formField"><label class="formLabel">تأكيد كلمة المرور</label><input class="formInput" id="acPassC" placeholder="أعد كتابة كلمة المرور" type="password"></div>
+    <button class="submitBtn" onclick="saveAccount('${d.id}')">${linked?'💾 تعديل الحساب':'✅ إنشاء الحساب'}</button>
+    ${linked?`<button class="deleteAccountBtn" onclick="confirmDeleteAccount('${linked.id}','${linked.username.replace(/'/g,"\\'")}')">🗑️ حذف الحساب</button>`:''}
+  `);
+}
+function saveAccount(driverId){
+  const d=getDrivers().find(x=>x.id===driverId);if(!d)return;
+  const uname=document.getElementById('acUser')?.value?.trim();
+  const pass=document.getElementById('acPass')?.value;
+  const passC=document.getElementById('acPassC')?.value;
+  if(!uname){showToast('اسم المستخدم مطلوب','error');return;}
+  if(!pass){showToast('كلمة المرور مطلوبة','error');return;}
+  if(pass!==passC){showToast('كلمة المرور غير متطابقة','error');return;}
+  let users=getUsers();
+  const linked=users.find(u=>u.linkedDriverName===d.name);
+  if(linked)users=users.filter(u=>u.id!==linked.id);
+  const dup=users.find(u=>u.username.toLowerCase()===uname.toLowerCase());
+  if(dup){showToast('اسم المستخدم موجود بالفعل','error');return;}
+  users.push({id:genId(),username:uname,password:pass,role:'driver',linkedDriverName:d.name,createdAt:new Date().toISOString()});
+  saveUsers(users);
+  showToast(linked?'تم تعديل الحساب':'تم إنشاء الحساب','success');
+  closeInputModal();renderDrivers();
+}
+function confirmDeleteAccount(uid,uname){
+  openConfirm('حذف حساب السائق',`هل تريد حذف حساب "${uname}"؟`,'',()=>{
+    saveUsers(getUsers().filter(u=>u.id!==uid));
+    showToast('تم حذف الحساب','info');closeInputModal();renderDrivers();
+  });
+}
+
+// Add user
+function openAddUser(){
+  let selRole='user';
+  const roles=isAdmin()?['user','subadmin','admin']:['user'];
+  openInputModal('إضافة مستخدم جديد',`
+    <div class="formField"><label class="formLabel">اسم المستخدم</label><input class="formInput" id="nuUser" type="text" autocomplete="off"></div>
+    <div class="formField"><label class="formLabel">كلمة المرور</label><input class="formInput" id="nuPass" type="password"></div>
+    <div class="formField"><label class="formLabel">الصلاحية</label>
+      <div class="roleRow" id="roleRow">${roles.map(r=>`<button class="roleOpt${r==='user'?' active':''}" onclick="selectRole('${r}')">${roleLabel(r)}</button>`).join('')}</div>
+    </div>
+    <button class="submitBtn" onclick="submitAddUser()">➕ إضافة</button>
+  `);
+}
+let selectedNewRole='user';
+function selectRole(r){
+  selectedNewRole=r;
+  document.querySelectorAll('.roleOpt').forEach(b=>{b.classList.toggle('active',b.textContent.trim()===roleLabel(r));});
+}
+function submitAddUser(){
+  const uname=document.getElementById('nuUser')?.value?.trim();
+  const pass=document.getElementById('nuPass')?.value;
+  if(!uname||!pass){showToast('اسم المستخدم وكلمة المرور مطلوبان','error');return;}
+  const users=getUsers();
+  if(users.find(u=>u.username.toLowerCase()===uname.toLowerCase())){showToast('اسم المستخدم موجود بالفعل','error');return;}
+  users.push({id:genId(),username:uname,password:pass,role:selectedNewRole,createdAt:new Date().toISOString()});
+  saveUsers(users);
+  showToast('تم إضافة المستخدم','success');closeInputModal();renderDrivers();
+}
+
+// Edit user
+function openEditUser(uid){
+  const u=getUsers().find(x=>x.id===uid);if(!u)return;
+  if(!canEditUser(u)){showToast('لا تملك صلاحية التعديل','error');return;}
+  const roles=isAdmin()?['user','subadmin','admin','driver']:['user','driver'];
+  openInputModal('تعديل بيانات المستخدم',`
+    <div style="background:var(--primary-light);border-radius:10px;padding:12px;text-align:right;margin-bottom:14px;font-size:16px;font-weight:800">${u.username}</div>
+    <div class="formField"><label class="formLabel">اسم المستخدم الجديد</label><input class="formInput" id="euUser" value="${u.username}" type="text" autocomplete="off"></div>
+    <div class="formField"><label class="formLabel">كلمة المرور الجديدة (اختياري)</label><input class="formInput" id="euPass" placeholder="اتركها فارغة لعدم التغيير" type="password"></div>
+    ${u.username!=='admin'&&(isAdmin()||u.id===currentUser.id)?`
+    <div class="formField"><label class="formLabel">الصلاحية</label>
+      <div class="roleRow">${roles.map(r=>`<button class="roleOpt${r===u.role?' active':''}" onclick="this.parentElement.querySelectorAll('.roleOpt').forEach(b=>b.classList.remove('active'));this.classList.add('active');window._euRole='${r}'">${roleLabel(r)}</button>`).join('')}</div>
+    </div>`:''}
+    <button class="submitBtn" onclick="submitEditUser('${uid}')">💾 حفظ التعديلات</button>
+  `);
+  window._euRole=u.role;
+}
+function submitEditUser(uid){
+  const u=getUsers().find(x=>x.id===uid);if(!u)return;
+  const uname=document.getElementById('euUser')?.value?.trim();
+  const pass=document.getElementById('euPass')?.value;
+  const role=window._euRole||u.role;
+  if(!uname){showToast('اسم المستخدم مطلوب','error');return;}
+  if(isSubAdmin()&&role==='admin'){showToast('لا تملك صلاحية منح صلاحية أدمن رئيسي','error');return;}
+  let users=getUsers();
+  const dup=users.find(x=>x.id!==uid&&x.username.toLowerCase()===uname.toLowerCase());
+  if(dup){showToast('اسم المستخدم موجود بالفعل','error');return;}
+  users=users.map(x=>x.id===uid?{...x,username:uname,role,...(pass?{password:pass}:{})}:x);
+  saveUsers(users);
+  if(currentUser.id===uid){currentUser={...currentUser,username:uname,role,...(pass?{password:pass}:{})};document.getElementById('umName').textContent=currentUser.username;document.getElementById('umRole').textContent=roleLabel(currentUser.role);}
+  showToast('تم تعديل المستخدم','success');closeInputModal();renderDrivers();
+}
+function confirmDeleteUser(uid,uname){
+  const u=getUsers().find(x=>x.id===uid);
+  if(!canEditUser(u)){showToast('لا تملك صلاحية الحذف','error');return;}
+  openConfirm('حذف المستخدم',`هل تريد حذف "${uname}"؟`,'',()=>{
+    saveUsers(getUsers().filter(u=>u.id!==uid));
+    showToast('تم حذف المستخدم','info');renderDrivers();
+  });
+}
+
+// ============ CONFLICTS TAB ============
+function renderConflicts(){
+  const el=document.getElementById('tabConflicts');
+  const trips=getTrips().filter(t=>!t.endDatetime);
+  const driverCount={};const vehicleCount={};
+  trips.forEach(t=>{driverCount[t.driverName]=(driverCount[t.driverName]||0)+1;vehicleCount[t.vehicle]=(vehicleCount[t.vehicle]||0)+1;});
+  const conflicts=[];
+  Object.entries(driverCount).forEach(([name,c])=>{if(c>1)conflicts.push({type:'سائق',name,trips:trips.filter(t=>t.driverName===name)});});
+  Object.entries(vehicleCount).forEach(([v,c])=>{if(c>1)conflicts.push({type:'مركبة',name:v,trips:trips.filter(t=>t.vehicle===v)});});
+  if(conflicts.length===0){el.innerHTML=`<div class="emptyState"><div class="emptyIcon">✅</div><div class="emptyTitle">لا توجد تعارضات</div><div class="emptySubtitle">كل شيء على ما يرام</div></div>`;return;}
+  el.innerHTML=conflicts.map(c=>`<div class="conflictCard">
+    <div class="conflictTitle">⚠️ تعارض ${c.type}: ${c.name}</div>
+    ${c.trips.map(t=>`<div class="conflictInfo">🚌 ${t.vehicle} — ${t.driverName} — ${t.station}</div>`).join('')}
+  </div>`).join('');
+}
+
+// ============ USER MENU ============
+function toggleUserMenu(){document.getElementById('userMenuOverlay').classList.toggle('open');}
+function closeUserMenu(){document.getElementById('userMenuOverlay').classList.remove('open');}
+
+// ============ CONFIRM ============
+function openConfirm(title,info1,info2,cb){
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmInfo1').textContent=info1;
+  document.getElementById('confirmInfo2').textContent=info2||'';
+  confirmCallback=cb;
+  document.getElementById('confirmOverlay').classList.add('open');
+  document.getElementById('confirmOkBtn').onclick=()=>{closeConfirm();if(confirmCallback)confirmCallback();};
+}
+function closeConfirm(){document.getElementById('confirmOverlay').classList.remove('open');}
+
+// ============ INPUT MODAL ============
+function openInputModal(title,bodyHtml){
+  document.getElementById('inputModalTitle').textContent=title;
+  document.getElementById('inputModalBody').innerHTML=bodyHtml;
+  document.getElementById('inputOverlay').classList.add('open');
+  setTimeout(()=>{const first=document.querySelector('.inputModalBody input');if(first)first.focus();},200);
+}
+function closeInputModal(e){if(e&&e.target!==document.getElementById('inputOverlay'))return;document.getElementById('inputOverlay').classList.remove('open');}
+
+// ============ TOAST ============
+let toastTimer=null;
+function showToast(msg,type='info'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=`toast ${type} show`;
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{t.classList.remove('show');},3000);
+}
+
+// ============ INIT ============
+tryRestoreSession();
+</script>
+</body>
+</html>
